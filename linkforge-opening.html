@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkForge - Forge Your Links</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0B1124;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .url-text {
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            color: #FF6B00;
+            text-shadow: 0 0 20px rgba(255, 107, 0, 0.8), 0 0 40px rgba(255, 199, 0, 0.4);
+            font-family: 'Monaco', 'Courier New', monospace;
+            opacity: 0;
+            transform: translateX(-100px);
+            white-space: nowrap;
+        }
+
+        .short-link {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFC700, #FF6B00, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 107, 0, 0.6);
+            opacity: 0;
+            transform: scale(0.5);
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .logo-text {
+            font-size: 56px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #FF6B00, #FFC700, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: #94A3B8;
+            letter-spacing: 1px;
+            margin-top: 16px;
+            opacity: 0;
+            text-transform: uppercase;
+        }
+
+        .chain-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 20px;
+            opacity: 0;
+        }
+
+        /* Glassmorphism effect for short link */
+        .link-capsule {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 16px 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 199, 0, 0.3);
+            background: rgba(11, 17, 36, 0.4);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(255, 107, 0, 0.2), inset 0 1px 1px rgba(255, 199, 0, 0.1);
+            opacity: 0;
+            z-index: 8;
+        }
+
+        #homepage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-out;
+            z-index: 50;
+        }
+
+        #homepage.visible {
+            opacity: 1;
+        }
+
+        /* Homepage */
+        .hero-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0B1124 0%, #1a2a4a 100%);
+        }
+
+        .hero-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px;
+            gap: 32px;
+        }
+
+        .hero-right {
+            flex: 1;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 70%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FF6B00, #FFC700, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .tagline-main {
+            font-size: 36px;
+            font-weight: 700;
+            color: #FFFFFF;
+            max-width: 500px;
+            line-height: 1.3;
+        }
+
+        .tagline-secondary {
+            font-size: 16px;
+            color: #94A3B8;
+            max-width: 450px;
+            line-height: 1.6;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #1E293B;
+            border-radius: 8px;
+            background: rgba(26, 35, 50, 0.6);
+            color: #00E5FF;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .shorten-btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #FF6B00, #FF8C00);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.4);
+        }
+
+        .shorten-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 107, 0, 0.6);
+        }
+
+        .grid-background {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="overlay-canvas"></canvas>
+        <div id="text-overlay">
+            <div class="url-text" id="url-text">https://example.com/very-long-url/page/12345</div>
+            <div class="link-capsule">
+                <div class="short-link" id="short-link">linkforge.io/7Xk9</div>
+            </div>
+            <svg class="chain-icon" id="chain-icon" viewBox="0 0 40 40">
+                <g stroke="#FFC700" stroke-width="2" fill="none" stroke-linecap="round">
+                    <circle cx="12" cy="20" r="8"/>
+                    <circle cx="28" cy="20" r="8"/>
+                    <line x1="20" y1="20" x2="20" y2="20"/>
+                </g>
+            </svg>
+            <div class="logo-text" id="logo-text">LINKFORGE</div>
+            <div class="tagline" id="tagline-text">Forge Your Links. Simplify The Web.</div>
+        </div>
+
+        <div id="homepage">
+            <div class="hero-container">
+                <div class="hero-left">
+                    <div class="logo">LinkForge</div>
+                    <div class="tagline-main">Turn long links into powerful short URLs</div>
+                    <div class="tagline-secondary">Compress your URLs with style. Built for the future of link management.</div>
+                    <div class="input-group">
+                        <input type="text" class="url-input" placeholder="Paste your long URL here...">
+                        <button class="shorten-btn">Shorten URL</button>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="grid-background"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const overlayCanvas = document.getElementById('overlay-canvas');
+        const overlayCtx = overlayCanvas.getContext('2d');
+        const urlText = document.getElementById('url-text');
+        const shortLink = document.getElementById('short-link');
+        const chainIcon = document.getElementById('chain-icon');
+        const logoText = document.getElementById('logo-text');
+        const taglineText = document.getElementById('tagline-text');
+        const linkCapsule = document.querySelector('.link-capsule');
+        const homepage = document.getElementById('homepage');
+
+        let animationTime = 0;
+        let animationComplete = false;
+
+        // Resize canvas
+        function resizeCanvas() {
+            overlayCanvas.width = window.innerWidth;
+            overlayCanvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Particle system
+        const particles = [];
+        class Particle {
+            constructor(x, y, vx = 0, vy = 0, color = '#00E5FF') {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.life = 1;
+                this.maxLife = 1;
+                this.size = Math.random() * 2 + 1;
+                this.color = color;
+            }
+
+            update(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.life = Math.max(0, this.life - dt * 0.5);
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life * 0.8;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Animated grid lines
+        let gridLines = [];
+        function initGridLines() {
+            gridLines = [];
+            const spacing = 60;
+            const gridColor = 'rgba(0, 229, 255, 0.15)';
+
+            for (let x = -100; x < overlayCanvas.width + 100; x += spacing) {
+                gridLines.push({
+                    x1: x,
+                    y1: -100,
+                    x2: x,
+                    y2: overlayCanvas.height + 100,
+                    color: gridColor,
+                    opacity: 0
+                });
+            }
+            for (let y = -100; y < overlayCanvas.height + 100; y += spacing) {
+                gridLines.push({
+                    x1: -100,
+                    y1: y,
+                    x2: overlayCanvas.width + 100,
+                    y2: y,
+                    color: gridColor,
+                    opacity: 0
+                });
+            }
+        }
+        initGridLines();
+
+        // Animation timeline
+        function animate(time) {
+            animationTime = time / 1000; // Convert to seconds
+
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            overlayCtx.shadowBlur = 0;
+
+            const t = animationTime;
+
+            // === 0.0–0.5s === DIGITAL AWAKENING
+            if (t < 0.5) {
+                const progress = t / 0.5;
+
+                // Fade in grid
+                gridLines.forEach(line => {
+                    line.opacity = Math.min(line.opacity + 0.02, progress * 0.3);
+                });
+
+                // Draw grid
+                gridLines.forEach(line => {
+                    overlayCtx.strokeStyle = line.color;
+                    overlayCtx.globalAlpha = line.opacity;
+                    overlayCtx.lineWidth = 1;
+                    overlayCtx.beginPath();
+                    overlayCtx.moveTo(line.x1, line.y1);
+                    overlayCtx.lineTo(line.x2, line.y2);
+                    overlayCtx.stroke();
+                });
+
+                // Spawn ambient particles
+                if (Math.random() > 0.7) {
+                    const x = Math.random() * overlayCanvas.width;
+                    const y = Math.random() * overlayCanvas.height;
+                    particles.push(new Particle(x, y, 0, -10, '#00E5FF'));
+                }
+
+                // Draw central energy ring
+                const ringRadius = 60 + Math.sin(t * Math.PI * 4) * 10;
+                overlayCtx.strokeStyle = `rgba(0, 229, 255, ${progress * 0.5})`;
+                overlayCtx.lineWidth = 2;
+                overlayCtx.globalAlpha = progress * 0.5;
+                overlayCtx.beginPath();
+                overlayCtx.arc(overlayCanvas.width / 2, overlayCanvas.height / 2, ringRadius, 0, Math.PI * 2);
+                overlayCtx.stroke();
+
+                // Camera push effect (zoom)
+                overlayCtx.globalAlpha = progress * 0.1;
+                overlayCtx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
+                overlayCtx.lineWidth = 1;
+                for (let i = 0; i < 5; i++) {
+                    const scale = 1 + progress * 2 + i * 0.3;
+                    const radius = 100 * scale;
+                    overlayCtx.beginPath();
+                    overlayCtx.arc(overlayCanvas.width / 2, overlayCanvas.height / 2, radius, 0, Math.PI * 2);
+                    overlayCtx.stroke();
+                }
+            }
+
+            // === 0.5–1.1s === THE LINK ARRIVES
+            if (t >= 0.5 && t < 1.1) {
+                const progress = (t - 0.5) / 0.6;
+
+                // Animate URL text entrance
+                urlText.style.opacity = Math.min(1, progress * 2);
+                urlText.style.transform = `translateX(${-100 + progress * 100}px)`;
+
+                // Spawn compression particles
+                if (Math.random() > 0.8 && progress > 0.3) {
+                    const x = overlayCanvas.width / 2 + (Math.random() - 0.5) * 300 * progress;
+                    const y = overlayCanvas.height / 2;
+                    particles.push(new Particle(
+                        x, y,
+                        (Math.random() - 0.5) * 200,
+                        (Math.random() - 0.5) * 200,
+                        Math.random() > 0.5 ? '#FF6B00' : '#00E5FF'
+                    ));
+                }
+            }
+
+            // === 1.1–1.7s === FORGING IMPACT
+            if (t >= 1.1 && t < 1.7) {
+                const progress = (t - 1.1) / 0.6;
+
+                // Hammer strike visual
+                const hammerX = overlayCanvas.width / 2;
+                const hammerY = overlayCanvas.height / 2 - 150;
+                const strikeProgress = Math.max(0, progress);
+
+                if (strikeProgress > 0) {
+                    // Draw hammer
+                    overlayCtx.fillStyle = 'rgba(50, 60, 80, 0.8)';
+                    overlayCtx.fillRect(hammerX - 20, hammerY, 40, 60);
+                    overlayCtx.fillStyle = 'rgba(255, 199, 0, 0.6)';
+                    overlayCtx.fillRect(hammerX - 30, hammerY - 15, 60, 20);
+
+                    // Impact particles (sparks)
+                    if (progress < 0.2) {
+                        const sparkCount = 8;
+                        for (let i = 0; i < sparkCount; i++) {
+                            const angle = (i / sparkCount) * Math.PI * 2;
+                            const velocity = 500;
+                            const vx = Math.cos(angle) * velocity;
+                            const vy = Math.sin(angle) * velocity;
+                            particles.push(new Particle(
+                                hammerX, overlayCanvas.height / 2,
+                                vx, vy,
+                                Math.random() > 0.5 ? '#FF6B00' : '#FFC700'
+                            ));
+                        }
+                    }
+
+                    // Camera shake
+                    const shakeIntensity = (1 - progress) * 20;
+                    overlayCtx.globalAlpha = (1 - progress) * 0.3;
+                    overlayCtx.fillStyle = 'rgba(255, 107, 0, 0.1)';
+                    overlayCtx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+                    // Shockwave
+                    const shockwaveRadius = 50 + progress * 400;
+                    overlayCtx.globalAlpha = (1 - progress) * 0.5;
+                    overlayCtx.strokeStyle = 'rgba(255, 107, 0, 0.6)';
+                    overlayCtx.lineWidth = 3;
+                    overlayCtx.beginPath();
+                    overlayCtx.arc(overlayCanvas.width / 2, overlayCanvas.height / 2, shockwaveRadius, 0, Math.PI * 2);
+                    overlayCtx.stroke();
+                }
+
+                // Hide URL
+                urlText.style.opacity = Math.max(0, 1 - progress);
+            }
+
+            // === 1.7–2.1s === SHORT LINK FORMED
+            if (t >= 1.7 && t < 2.1) {
+                const progress = (t - 1.7) / 0.4;
+
+                linkCapsule.style.opacity = Math.min(1, progress);
+                linkCapsule.style.transform = `translate(-50%, -50%) scale(${0.5 + progress * 0.5})`;
+
+                shortLink.style.opacity = Math.min(1, progress);
+                shortLink.style.transform = `scale(${0.3 + progress * 0.7})`;
+            }
+
+            // === 2.1–2.5s === LOGO REVEAL
+            if (t >= 2.1 && t < 2.5) {
+                const progress = (t - 2.1) / 0.4;
+
+                // Fade out short link
+                linkCapsule.style.opacity = Math.max(0, 1 - progress);
+                linkCapsule.style.transform = `translate(-50%, -50%) scale(${1 - progress * 0.2})`;
+
+                // Fade in logo
+                logoText.style.opacity = Math.min(1, progress * 1.5);
+                logoText.style.transform = `scale(${0.8 + progress * 0.2})`;
+
+                // Fade in tagline
+                taglineText.style.opacity = Math.min(1, (progress - 0.2) * 2);
+
+                // Fade in chain icon
+                chainIcon.style.opacity = Math.min(1, (progress - 0.1) * 2);
+            }
+
+            // === 2.5s+ === TRANSITION
+            if (t >= 2.5 && !animationComplete) {
+                animationComplete = true;
+                setTimeout(() => {
+                    homepage.classList.add('visible');
+                }, 200);
+            }
+
+            // Update and draw particles
+            overlayCtx.globalAlpha = 1;
+            particles.forEach((p, i) => {
+                p.update(0.016); // ~60fps
+                if (p.life > 0) {
+                    p.draw(overlayCtx);
+                }
+            });
+            particles = particles.filter(p => p.life > 0);
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>

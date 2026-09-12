@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkForge - Turn Long Links into Powerful Short URLs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0B1124;
+            overflow: hidden;
+        }
+
+        .hero-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .hero-left {
+            flex: 1;
+            background: #111827;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px;
+            gap: 32px;
+        }
+
+        .hero-right {
+            flex: 1;
+            background: #0B1124;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FF6B00, #FFC700, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .tagline {
+            font-size: 36px;
+            font-weight: 700;
+            color: #FFFFFF;
+            max-width: 500px;
+            line-height: 1.3;
+        }
+
+        .tagline-secondary {
+            font-size: 16px;
+            color: #94A3B8;
+            max-width: 450px;
+            line-height: 1.6;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #1E293B;
+            border-radius: 8px;
+            background: #1a2332;
+            color: #00E5FF;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .url-input::placeholder {
+            color: #475569;
+        }
+
+        .url-input:focus {
+            border-color: #00E5FF;
+            box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+        }
+
+        .shorten-btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #FF6B00, #FF8C00);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.4);
+        }
+
+        .shorten-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 107, 0, 0.6);
+        }
+
+        .shorten-btn:active {
+            transform: translateY(0);
+        }
+
+        #forge-stage {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 70%);
+        }
+
+        #forge-stage::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(90deg, transparent 24%, rgba(0, 229, 255, 0.05) 25%, rgba(0, 229, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 229, 255, 0.05) 75%, rgba(0, 229, 255, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(0deg, transparent 24%, rgba(0, 229, 255, 0.05) 25%, rgba(0, 229, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 229, 255, 0.05) 75%, rgba(0, 229, 255, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        canvas#spark-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+        }
+
+        .url-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .long-url {
+            color: #00E5FF;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+        }
+
+        .short-url {
+            color: #FFFFFF;
+            background: linear-gradient(90deg, #FFC700, #FF6B00, #00E5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 32px;
+            text-shadow: 0 0 30px rgba(255, 107, 0, 0.4);
+        }
+
+        #anvil {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            z-index: 15;
+            filter: drop-shadow(0 0 20px rgba(255, 199, 0, 0.6));
+        }
+
+        .chain-link-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            z-index: 12;
+            filter: drop-shadow(0 0 15px rgba(255, 199, 0, 0.4));
+        }
+
+        /* Grid background */
+        #forge-stage {
+            background:
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.05) 0%, transparent 70%);
+            background-size: 40px 40px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-3px); }
+            20% { transform: translateX(3px); }
+            30% { transform: translateX(-3px); }
+            40% { transform: translateX(3px); }
+            50% { transform: translateX(-3px); }
+            60% { transform: translateX(3px); }
+            70% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+            90% { transform: translateX(-3px); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-container">
+        <!-- LEFT SECTION -->
+        <div class="hero-left">
+            <div class="logo">LinkForge</div>
+            <div class="tagline">Turn long links into powerful short URLs</div>
+            <div class="tagline-secondary">Compress your URLs with style. Built for the future of link management.</div>
+            <div class="input-group">
+                <input
+                    type="text"
+                    class="url-input"
+                    placeholder="Paste your long URL here..."
+                >
+                <button class="shorten-btn">Shorten URL</button>
+            </div>
+        </div>
+
+        <!-- RIGHT SECTION: FORGE ANIMATION -->
+        <div class="hero-right">
+            <div id="forge-stage">
+                <canvas id="spark-canvas"></canvas>
+
+                <!-- SVG Anvil -->
+                <svg id="anvil" width="120" height="120" viewBox="0 0 120 120">
+                    <!-- Anvil body -->
+                    <g>
+                        <!-- Base -->
+                        <polygon points="20,90 100,90 95,70 25,70" fill="#FFC700" opacity="0.9"/>
+                        <!-- Main block -->
+                        <polygon points="25,70 95,70 90,40 30,40" fill="#FFD700" opacity="0.95"/>
+                        <!-- Horn/Peak -->
+                        <polygon points="35,40 85,40 75,15 45,15" fill="#FFED4E" opacity="0.9"/>
+                        <!-- Highlight -->
+                        <polygon points="40,40 80,40 72,20 48,20" fill="#FFFF99" opacity="0.6"/>
+                    </g>
+                </svg>
+
+                <!-- Chain Link Icon -->
+                <svg class="chain-link-icon" width="80" height="80" viewBox="0 0 80 80">
+                    <g stroke="#FFC700" stroke-width="3" fill="none" stroke-linecap="round">
+                        <circle cx="25" cy="40" r="15"/>
+                        <circle cx="55" cy="40" r="15"/>
+                        <line x1="40" y1="40" x2="40" y2="40"/>
+                    </g>
+                    <g stroke="#00E5FF" stroke-width="2" fill="none" stroke-linecap="round">
+                        <path d="M 35 35 L 45 45" opacity="0.6"/>
+                        <path d="M 45 35 L 35 45" opacity="0.6"/>
+                    </g>
+                </svg>
+
+                <!-- URL Text Elements -->
+                <div class="url-text long-url" id="long-url">www.thisisaverylongexampleurl.com/page/12345</div>
+                <div class="url-text short-url" id="short-url">link.io/abcXYZ</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const forgeStage = document.getElementById('forge-stage');
+        const sparkCanvas = document.getElementById('spark-canvas');
+        const ctx = sparkCanvas.getContext('2d');
+        const anvil = document.getElementById('anvil');
+        const chainLink = document.querySelector('.chain-link-icon');
+        const longUrl = document.getElementById('long-url');
+        const shortUrl = document.getElementById('short-url');
+
+        // Set canvas size
+        function resizeCanvas() {
+            sparkCanvas.width = forgeStage.offsetWidth;
+            sparkCanvas.height = forgeStage.offsetHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Particle system
+        const particles = [];
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 12;
+                this.vy = (Math.random() - 0.5) * 12 - 2;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.015;
+                this.size = Math.random() * 4 + 2;
+                this.color = Math.random() > 0.5 ? '#FF6B00' : '#FFC700';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.3; // gravity
+                this.life -= this.decay;
+                this.vx *= 0.98; // friction
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function createSparks(x, y, count = 40) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    particles[i].draw(ctx);
+                }
+            }
+        }
+
+        // Animation loop
+        function animateParticlesLoop() {
+            animateParticles();
+            requestAnimationFrame(animateParticlesLoop);
+        }
+        animateParticlesLoop();
+
+        // Main forge animation sequence
+        async function runForgeAnimation() {
+            const stageWidth = forgeStage.offsetWidth;
+            const stageCenterX = stageWidth / 2;
+            const stageCenterY = forgeStage.offsetHeight / 2;
+
+            // Reset
+            longUrl.style.opacity = '0';
+            shortUrl.style.opacity = '0';
+            anvil.style.opacity = '0';
+            chainLink.style.opacity = '0';
+            particles.length = 0;
+
+            // Frame 1: Long URL slides in from left (0s - 1s)
+            longUrl.style.opacity = '1';
+            const slideAnimation = longUrl.animate(
+                [
+                    { transform: 'translate(-150%, -50%)', opacity: 0 },
+                    { transform: 'translate(-50%, -50%)', opacity: 1 }
+                ],
+                { duration: 1000, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
+            );
+            await new Promise(r => slideAnimation.onfinish = r);
+
+            // Frame 2: Anvil fades in & sparks burst (1s - 2.5s)
+            anvil.style.opacity = '1';
+            const anvilFadeIn = anvil.animate(
+                [{ opacity: 0 }, { opacity: 1 }],
+                { duration: 500, easing: 'ease-out' }
+            );
+
+            // Trigger spark burst at anvil center
+            setTimeout(() => {
+                createSparks(stageCenterX, stageCenterY, 45);
+            }, 200);
+
+            await new Promise(r => anvilFadeIn.onfinish = r);
+            await new Promise(r => setTimeout(r, 1000)); // Hold for sparks
+
+            // Frame 3: URL shakes and compresses (2.5s - 3.5s)
+            longUrl.style.animation = 'shake 0.6s ease-in-out';
+            const scaleAnimation = longUrl.animate(
+                [
+                    { scaleX: 1, fontWeight: '300' },
+                    { scaleX: 0.3, fontWeight: '900' }
+                ],
+                { duration: 1000, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+            );
+            await new Promise(r => scaleAnimation.onfinish = r);
+            longUrl.style.animation = 'none';
+
+            // Frame 4: Anvil fades out, URL morphs to short URL & slides right (3.5s - 4.5s)
+            anvil.style.opacity = '0';
+
+            const longUrlFade = longUrl.animate(
+                [{ opacity: 1 }, { opacity: 0 }],
+                { duration: 300, easing: 'ease-out' }
+            );
+
+            shortUrl.style.opacity = '1';
+            shortUrl.style.scaleX = '0.3';
+            shortUrl.style.fontWeight = '900';
+
+            const shortUrlExpand = shortUrl.animate(
+                [
+                    { transform: 'translate(-50%, -50%) scaleX(0.3)', opacity: 0 },
+                    { transform: 'translate(-50%, -50%) scaleX(1)', opacity: 1 }
+                ],
+                { duration: 1000, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
+            );
+
+            chainLink.style.opacity = '1';
+            const chainFadeIn = chainLink.animate(
+                [{ opacity: 0 }, { opacity: 1 }],
+                { duration: 600, delay: 300, easing: 'ease-out' }
+            );
+
+            await Promise.all([
+                new Promise(r => longUrlFade.onfinish = r),
+                new Promise(r => shortUrlExpand.onfinish = r),
+                new Promise(r => chainFadeIn.onfinish = r)
+            ]);
+
+            // Frame 5: Hold final result (4.5s - 6s)
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Frame 6: Fade everything and reset (6s+)
+            const finalFadeOut = shortUrl.animate(
+                [{ opacity: 1 }, { opacity: 0 }],
+                { duration: 800, easing: 'ease-in' }
+            );
+
+            const chainFadeOut = chainLink.animate(
+                [{ opacity: 1 }, { opacity: 0 }],
+                { duration: 800, easing: 'ease-in' }
+            );
+
+            await Promise.all([
+                new Promise(r => finalFadeOut.onfinish = r),
+                new Promise(r => chainFadeOut.onfinish = r)
+            ]);
+
+            // Loop back
+            await runForgeAnimation();
+        }
+
+        // Start animation on load
+        window.addEventListener('load', () => {
+            // Small delay to ensure animations are smooth
+            setTimeout(runForgeAnimation, 300);
+        });
+
+        // Start immediately if already loaded
+        if (document.readyState === 'complete') {
+            setTimeout(runForgeAnimation, 300);
+        }
+    </script>
+</body>
+</html>
