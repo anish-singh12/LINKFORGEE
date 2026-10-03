@@ -112,11 +112,8 @@ export function DashboardPage() {
   }
 
   const getUserGreeting = () => {
-    const hour = new Date().getHours()
-    const name = user?.email?.split('@')[0] || 'User'
-    if (hour < 12) return `Good morning, ${name} 👋`
-    if (hour < 18) return `Good afternoon, ${name} 👋`
-    return `Good evening, ${name} 👋`
+    const name = user?.user_metadata?.name || user?.email?.split('@')[0] || 'there'
+    return `Welcome back, ${name} 👋`
   }
 
   if (authLoading) {
@@ -194,26 +191,26 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          className="bg-gradient-to-br from-dark-secondary/50 to-dark/30 border border-dark-tertiary/50 light:border-gray-200 rounded-2xl p-6 mb-8 backdrop-blur-sm"
+          className="bg-gradient-to-br from-dark-secondary/50 to-dark/30 light:from-white light:to-white light:bg-white border border-dark-tertiary/50 light:border-slate-200/90 rounded-2xl p-6 mb-8 backdrop-blur-sm light:backdrop-blur-none light:shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
         >
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
             <div className="flex-1 w-full">
-              <label className="text-sm font-semibold text-gray-400 block mb-3">Search</label>
+              <label className="text-xs font-semibold text-gray-400 light:text-slate-500 uppercase tracking-wider block mb-2.5">Search</label>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search by URL or short code..."
-                className="w-full px-4 py-3 bg-dark border border-dark-tertiary rounded-lg focus:border-accent focus:outline-none text-white placeholder-gray-500 transition-colors"
+                className="w-full px-4 py-3 bg-dark light:bg-slate-50 border border-dark-tertiary light:border-slate-200 rounded-xl focus:border-accent light:focus:border-blue-500 focus:outline-none light:focus:bg-white text-white light:text-slate-900 placeholder-gray-500 light:placeholder-slate-400 transition-all text-sm font-normal"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-gray-400 block mb-3">Sort By</label>
+              <label className="text-xs font-semibold text-gray-400 light:text-slate-500 uppercase tracking-wider block mb-2.5">Sort By</label>
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as 'recent' | 'clicks' | 'name')}
-                className="px-4 py-3 bg-dark border border-dark-tertiary rounded-lg focus:border-accent focus:outline-none text-white transition-colors cursor-pointer"
+                className="px-4 py-3 bg-dark light:bg-slate-50 border border-dark-tertiary light:border-slate-200 rounded-xl focus:border-accent light:focus:border-blue-500 focus:outline-none text-white light:text-slate-900 transition-all cursor-pointer text-sm font-medium"
               >
                 <option value="recent">Recent</option>
                 <option value="clicks">Most Clicks</option>
@@ -229,7 +226,7 @@ export function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
-          <h2 className="text-2xl font-bold mb-6">Your Links</h2>
+          <h2 className="text-2xl font-bold mb-6 text-white light:text-slate-900">Your Links</h2>
           <LinksTable
             urls={filteredUrls}
             onDelete={handleDelete}

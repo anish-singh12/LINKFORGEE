@@ -75,12 +75,19 @@ html.light body {
 
 /* Light mode page backgrounds */
 html.light .bg-gradient-dark {
-  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%) !important;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 100%) !important;
   color: #0f172a;
 }
 
+html.light .min-h-screen,
 html.light .min-h-screen.text-white {
   color: #0f172a;
+}
+
+/* Dashboard shell */
+html.light .dashboard-shell {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eef8 100%) !important;
+  color: #0f172a !important;
 }
 
 /* Light mode surface colors */
@@ -125,6 +132,102 @@ html.light .border-dark-tertiary,
 html.light .border-dark-tertiary\/50,
 html.light .border-dark-tertiary\/30 {
   border-color: #e2e8f0 !important;
+}
+
+/* ===== STAT CARDS ===== */
+html.light .group.relative.overflow-hidden.rounded-2xl {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 16px rgba(30, 64, 175, 0.08), 0 1px 4px rgba(0,0,0,0.04) !important;
+}
+
+html.light .group.relative.overflow-hidden.rounded-2xl:hover {
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+/* Stat card bottom indicator track */
+html.light .h-1.bg-dark.rounded-full {
+  background-color: #e2e8f0 !important;
+}
+
+/* Stat card floating corner */
+html.light .absolute.top-0.right-0.bg-accent\/5 {
+  background-color: rgba(59, 130, 246, 0.06) !important;
+}
+
+/* ===== ALL text-white in light mode ===== */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+/* Keep white text inside blue/gradient buttons, badges, and avatar */
+html.light .bg-gradient-accent,
+html.light .bg-gradient-accent *,
+html.light [class*="bg-gradient-accent"],
+html.light [class*="bg-gradient-accent"] *,
+html.light .bg-accent,
+html.light .bg-accent * {
+  color: #ffffff !important;
+}
+
+/* ===== SEARCH & FILTER BAR ===== */
+html.light .bg-gradient-to-br.from-dark-secondary\/50 {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+/* ===== LINKS TABLE ===== */
+/* Empty state */
+html.light .bg-gradient-to-br.from-dark-secondary\/50.to-dark\/50 {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Table header row */
+html.light .bg-dark\/30.rounded-lg {
+  background: rgba(241, 245, 249, 0.8) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Table row backgrounds */
+html.light .bg-gradient-to-r.from-dark-secondary\/40.to-dark\/20 {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-gradient-to-r.from-dark-secondary\/40.to-dark\/20:hover,
+html.light .hover\:from-dark-secondary\/60:hover {
+  background: #f8faff !important;
+}
+
+html.light .rounded-lg.border.border-dark-tertiary\/50 {
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+/* Mobile table rows */
+html.light .bg-gradient-to-r.from-dark-secondary\/40 {
+  background: #ffffff !important;
+}
+
+/* Delete confirmation bar */
+html.light .border-t.border-dark-tertiary\/30 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .pt-2.border-t.border-dark-tertiary\/30 {
+  border-color: #e2e8f0 !important;
+}
+
+/* ===== TEXT COLORS ===== */
+html.light .text-gray-300 {
+  color: #374151 !important;
+}
+
+html.light .text-gray-500 {
+  color: #6b7280 !important;
 }
 
 /* Light mode card gradients */
@@ -404,11 +507,25 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Smooth transitions */
 button, a, input, select, textarea {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile tap highlights */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth transform animations */
+* {
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Custom scrollbar */

@@ -5,7 +5,7 @@
 
 import { supabase } from '@/lib/supabase'
 
-export async function signUp(email: string, password: string) {
+export async function signUp(email: string, password: string, name?: string) {
   console.log('[Auth Service] Sign up attempt:', { email })
 
   // Validate email format
@@ -26,6 +26,11 @@ export async function signUp(email: string, password: string) {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
+      options: {
+        data: {
+          name: name || email.split('@')[0],
+        },
+      },
     })
 
     console.log('[Auth Service] Sign up response:', { error: error?.message, userId: data?.user?.id })

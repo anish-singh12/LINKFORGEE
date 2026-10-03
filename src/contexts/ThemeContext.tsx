@@ -1,6 +1,6 @@
 /**
  * Theme Context
- * Global theme management with localStorage persistence
+ * Global theme management with localStorage persistence and smooth transitions
  */
 
 import { createContext, useContext, useEffect, useState } from 'react'
@@ -35,31 +35,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize theme on mount
   useEffect(() => {
-    console.log('[Theme] Initializing theme...')
-
     // Check for saved preference
     const savedTheme = localStorage.getItem('linkforge-theme') as Theme | null
-    console.log('[Theme] Saved theme:', savedTheme)
 
     if (savedTheme === 'light' || savedTheme === 'dark') {
       setTheme(savedTheme)
       applyTheme(savedTheme)
-      console.log('[Theme] Applied saved theme:', savedTheme)
     } else {
       // Check system preference
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       const initialTheme: Theme = systemPrefersDark ? 'dark' : 'light'
       setTheme(initialTheme)
       applyTheme(initialTheme)
-      console.log('[Theme] Applied system theme:', initialTheme)
     }
   }, [])
 
   const toggleTheme = () => {
-    console.log('[Theme] Toggle called, current theme:', theme)
     const newTheme: Theme = theme === 'dark' ? 'light' : 'dark'
-    console.log('[Theme] Switching to:', newTheme)
-
     setTheme(newTheme)
     localStorage.setItem('linkforge-theme', newTheme)
     applyTheme(newTheme)
@@ -67,7 +59,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement
-    console.log('[Theme] Applying theme to DOM:', newTheme)
+
+    // Add transition class for smooth theme change
+    root.style.transition = 'background-color 0.3s ease, color 0.3s ease'
 
     if (newTheme === 'light') {
       root.classList.remove('dark')
@@ -79,7 +73,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.body.style.colorScheme = 'dark'
     }
 
-    console.log('[Theme] DOM classes:', root.className)
+    // Remove transition after it completes
+    setTimeout(() => {
+      root.style.transition = ''
+    }, 300)
   }
 
   return (

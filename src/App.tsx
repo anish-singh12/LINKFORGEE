@@ -5,7 +5,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { LandingPage } from '@/pages/LandingPage'
-import { LoginPage, SignupPage } from '@/pages/AuthPages'
+import { AuthPage } from '@/pages/AuthPages'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { RedirectPage } from '@/pages/RedirectPage'
@@ -19,8 +19,8 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<AuthPage initialMode="login" />} />
+          <Route path="/signup" element={<AuthPage initialMode="register" />} />
 
           {/* Protected routes */}
           <Route

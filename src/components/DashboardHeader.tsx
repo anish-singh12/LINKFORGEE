@@ -43,7 +43,11 @@ export function DashboardHeader() {
   }
 
   const getAvatarInitial = () => {
-    return user?.email?.charAt(0).toUpperCase() || 'U'
+    const name = user?.user_metadata?.name || user?.email?.charAt(0).toUpperCase() || 'U'
+    if (typeof name === 'string' && name.length > 0) {
+      return name.charAt(0).toUpperCase()
+    }
+    return 'U'
   }
 
   const handleLogoClick = () => {
@@ -57,14 +61,14 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-dark/80 dark:bg-dark/80 light:bg-white/80 backdrop-blur-xl border-b border-dark-tertiary/50 light:border-gray-200/50 transition-colors duration-300">
+    <header className="sticky top-0 z-40 bg-dark/80 dark:bg-dark/80 light:bg-white/90 backdrop-blur-xl border-b border-dark-tertiary/50 light:border-slate-200/80 light:shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo - Now Clickable */}
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={handleLogoClick}
-          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+          className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
           title="Go to home"
         >
           <BrandLogo />
@@ -77,10 +81,10 @@ export function DashboardHeader() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleThemeToggle}
-            className="p-2 hover:bg-dark-secondary light:hover:bg-gray-100 rounded-lg transition-colors text-gray-400 light:text-gray-600 hover:text-accent light:hover:text-accent cursor-pointer"
+            className="p-2.5 hover:bg-dark-secondary light:hover:bg-slate-100 border border-transparent light:border-slate-200 rounded-xl transition-colors text-gray-400 light:text-slate-600 hover:text-accent light:hover:text-blue-600 cursor-pointer"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
           </motion.button>
 
           {/* User Avatar */}
